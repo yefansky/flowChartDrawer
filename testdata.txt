@@ -1,10 +1,14 @@
 zone:
-gamecenter(r) 
-gameserver(s) 
-zoneserver(zone) 
-client(c)
+Center(r) 
+GS(s) 
 
 flow:
-s2r searchMapRequest baseInfo,mapid #send player data to gc, eState=wait for guid
-r2s transferPlayerdata baseinfo, misc, accountdata # eStatue=wait for transfer
-r2r set_gamestatus # eState = wait for guid
+r2s DoSearchMapRespond true/false
+r2r OnSearchMapRespond
+r2r SwitchServer
+r2r SaveRoleData_SaveAccountData SavePos,Map,CenterIndex # GameStatus=WaitForTransmission
+s2r SaveRoleData
+r2s DoSaveRoleDataRespond #check GameStatus == WaitForTransmission
+s2r DoTransferPlayerRequest RoleID, AccountInfo, ExtPointInfo, miscInfo, BaseInfo # set GameStatus = WaitForTransmissionForGuid
+r2s DoTransferPlayerRequest(dstIndex) #new Player, Load BaseInfo, GameStatus=WaitForConnect, Create Guid
+s2r TransferPlayerRespond Guid

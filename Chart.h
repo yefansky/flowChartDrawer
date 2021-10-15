@@ -19,6 +19,7 @@ struct ZoneChart
 	int m_nColor = 0;
 	std::string m_strName = "";
 	int m_nIndex = 0;
+	RECT m_titleRect;
 
 	int CenterX()
 	{
@@ -63,6 +64,7 @@ class Chart
 	std::list<ZoneChart> m_Zones;
 	std::list<FlowChart> m_Flows;
 public:
+	bool Init();
 	bool Parse(Document* pDoc);
 	bool Calculate();
 	bool Draw();

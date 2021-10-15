@@ -44,6 +44,25 @@ inline std::string to_byte_string(const std::wstring& input)
 	return converter.to_bytes(input);
 }
 
+template <typename STR>
+static int lines(const STR& str)
+{
+	int nResult = 0;
+	for (auto& c : str)
+		if (c == '\n')
+			++nResult;
+	return nResult;
+}
+
+bool Chart::Init()
+{
+	initgraph(800, 1500);	// 创建绘图窗口，大小为 640x480 像素
+	setbkcolor(WHITE);
+	setbkmode(TRANSPARENT);
+	cleardevice();
+	return true;
+}
+
 bool Chart::Parse(Document* pDoc)
 {
 	bool bResult = false;
@@ -58,74 +77,92 @@ bool Chart::Parse(Document* pDoc)
 	for (auto& rData : pDoc->m_Zones)
 	{
 		ZoneChart z;
-		z.m_pos = { nX, nY };
+		Point pos;
+		z.m_pos = pos = { nX, nY };
 		nX += 250;
 		z.m_nWidth = 200;
-		z.m_nHeight = 800;
+		z.m_nHeight = 1800;
 		z.m_strName = rData.m_szName;
 		z.m_nIndex = rData.m_nIndex;
+
+		z.m_titleRect = { pos.m_nX, pos.m_nY + 20, pos.m_nX + z.m_nWidth, pos.m_nY + 100 };
 
 		m_Zones.push_back(z);
 		index2ZoneChartMap[z.m_nIndex] = &m_Zones.back();
 	}
 
-	nY += 100;
+	nY = m_Zones.front().m_titleRect.bottom;
 
 	for (auto& rData : pDoc->m_Flows)
 	{
 		FlowChart f;
-		nY += 100;
+
 		auto* pSrcZone = index2ZoneChartMap[rData.m_nSrc];
 		auto* pDstZone = index2ZoneChartMap[rData.m_nDst];
 
 		KGLOG_PROCESS_ERROR(pSrcZone);
 		KGLOG_PROCESS_ERROR(pDstZone);
 
-		f.m_start = { pSrcZone->CenterX(), nY };
+		f.m_strUpperText = rData.m_szProtocolName;
+		f.m_strLowerText = rData.m_szDatas;
+		if (rData.m_szComment[0])
+		{
+			f.m_strLowerText += "\n";
+			f.m_strLowerText += rData.m_szComment;
+		}
 
 		if (pSrcZone != pDstZone)
 		{
+			if (!f.m_strUpperText.empty())
+			{
+				nY += lines(f.m_strUpperText) * textheight(to_wide_string(f.m_strUpperText).c_str()) + 30;
+			}
+
+			f.m_start = { pSrcZone->CenterX(), nY };
 			f.m_end = { pDstZone->CenterX(), nY };
 			f.m_labelRect = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY - 30,
-				max(f.m_start.m_nX, f.m_end.m_nY),
+				max(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY - 10
 			};
 			f.m_labelRect2 = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY + 10,
-				max(f.m_start.m_nX, f.m_end.m_nY),
+				max(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY + 50
 			};
 			f.m_uFormat = f.m_start.m_nX < f.m_end.m_nX ? DT_LEFT : DT_RIGHT;
+
+			nY = f.m_start.m_nY + 50;
 		}
 		else
 		{
-			nY += 100;
+			f.m_start = { pSrcZone->CenterX(), nY };
+			if (!f.m_strLowerText.empty())
+				f.m_strLowerText = "----------------\n" + f.m_strLowerText;
+			auto s = to_wide_string(f.m_strUpperText + "\n" + f.m_strLowerText);
+			int textHeight = textheight(s.c_str()) * lines(s);
+			nY += textHeight + 60;
 			f.m_end = { pDstZone->CenterX(), nY };
 			f.m_labelRect = { 
 				f.m_start.m_nX + 10, f.m_start.m_nY + 10, 
-				f.m_start.m_nX + 10 + 1000, (f.m_end.m_nY + 10 + f.m_start.m_nY) / 2
+				f.m_start.m_nX + 10 + 1000, (f.m_end.m_nY + f.m_start.m_nY - 10) / 2
 			};
 			f.m_labelRect2 = {
-				f.m_start.m_nX + 10, (f.m_end.m_nY + 10 + 10 + f.m_start.m_nY) / 2,
-				f.m_start.m_nX + 10 + 1000, f.m_end.m_nY
+				f.m_start.m_nX + 10, (f.m_end.m_nY + f.m_start.m_nY - 10) / 2,
+				f.m_start.m_nX + 10 + 1000, f.m_end.m_nY - 10
 			};
 			f.m_uFormat = DT_LEFT;
 		}
 
-		nY += 5;
-		f.m_strUpperText = rData.m_szProtocolName;
-		f.m_strLowerText = rData.m_szDatas;
-		if (rData.m_szComment[0])
-		{
-			f.m_strLowerText += "\n----------------\n";
-			f.m_strLowerText += rData.m_szComment;
-		}
+		nY += 30;
 
 		m_Flows.push_back(f);
 	}
+
+	for (auto& rZone : m_Zones)
+		rZone.m_nHeight = nY;
 
 	bResult = true;
 Exit0:
@@ -139,11 +176,6 @@ bool Chart::Calculate()
 
 bool Chart::Draw()
 {	
-	initgraph(1280, 960);	// 创建绘图窗口，大小为 640x480 像素
-	setbkcolor(WHITE);
-	setbkmode(TRANSPARENT);
-	cleardevice();
-
 	for (auto& rZone : m_Zones)
 	{
 		auto& rPos = rZone.m_pos;
@@ -152,8 +184,7 @@ bool Chart::Draw()
 		
 		{
 			Color c(BLACK);
-			RECT rect{ rPos.m_nX, rPos.m_nY + 20, rPos.m_nX + rZone.m_nWidth, rPos.m_nY + 100 };
-			drawtext(to_wide_string(rZone.m_strName).c_str(), &rect, DT_CENTER);
+			drawtext(to_wide_string(rZone.m_strName).c_str(), &rZone.m_titleRect, DT_CENTER);
 		}
 	}
 
@@ -162,8 +193,8 @@ bool Chart::Draw()
 		Color c(BLACK);
 		DrawArraw(rF.m_start, rF.m_end);
 
-		drawtext(to_wide_string(rF.m_strUpperText).c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP);
-		drawtext(to_wide_string(rF.m_strLowerText).c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP);
+		drawtext(to_wide_string(rF.m_strUpperText).c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
+		drawtext(to_wide_string(rF.m_strLowerText).c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
 	}
 	
 	_getch();				// 按任意键继续

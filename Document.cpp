@@ -32,6 +32,9 @@ bool Document::Load(const char* cpszPath)
 
 	while (fgets(szBuffer, sizeof(szBuffer), pfFile))
 	{
+		if (szBuffer[0] == 0 || szBuffer[0] == '\n')
+			continue;
+
 		if (strstr(szBuffer, "zone:"))
 		{
 			section = SECTION::ZONE;
@@ -47,8 +50,10 @@ bool Document::Load(const char* cpszPath)
 			case SECTION::ZONE:
 				{
 					Zone z;
+
 					nRetCode = sscanf(szBuffer, "%[^(](%[^)]", z.m_szName, z.m_szNickName);
 					KGLOG_PROCESS_ERROR(nRetCode == 1 || nRetCode == 2);
+
 					if (nRetCode == 1)
 						SAFE_STR_CPY(z.m_szNickName, z.m_szName);
 					z.m_nIndex = ++nZoneIndexGenerator;
@@ -62,7 +67,11 @@ bool Document::Load(const char* cpszPath)
 					Flow f;
 					char szSrc[32];
 					char szDst[32];
-					nRetCode = sscanf(szBuffer, "%[^2]2%s %s %[^#]#%[^$]", szSrc, szDst, f.m_szProtocolName, f.m_szDatas, f.m_szComment);
+					nRetCode = sscanf(szBuffer, "%[^2]2%s %s %[^#\n]", szSrc, szDst, f.m_szProtocolName, f.m_szDatas);
+					KGLOG_PROCESS_ERROR(nRetCode >= 3);
+
+					sscanf(szBuffer, "%*[^#]#%[^$\n]", f.m_szComment);
+
 					f.m_nSrc = key2index(szSrc, nick2indexMap);
 					f.m_nDst = key2index(szDst, nick2indexMap);
 					m_Flows.push_back(f);
