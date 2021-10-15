@@ -139,10 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Chart.cpp" />
     <ClCompile Include="Document.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Chart.h" />
     <ClInclude Include="Document.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

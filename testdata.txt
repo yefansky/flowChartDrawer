@@ -7,3 +7,4 @@ client(c)
 flow:
 s2r searchMapRequest baseInfo,mapid #send player data to gc, eState=wait for guid
 r2s transferPlayerdata baseinfo, misc, accountdata # eStatue=wait for transfer
+r2r set_gamestatus # eState = wait for guid

@@ -62,7 +62,7 @@ bool Document::Load(const char* cpszPath)
 					Flow f;
 					char szSrc[32];
 					char szDst[32];
-					nRetCode = sscanf(szBuffer, "%[^2]2%s %s %[^#]#%s[^$]", szSrc, szDst, f.m_szProtocolName, f.m_szDatas, f.m_szComment);
+					nRetCode = sscanf(szBuffer, "%[^2]2%s %s %[^#]#%[^$]", szSrc, szDst, f.m_szProtocolName, f.m_szDatas, f.m_szComment);
 					f.m_nSrc = key2index(szSrc, nick2indexMap);
 					f.m_nDst = key2index(szDst, nick2indexMap);
 					m_Flows.push_back(f);
