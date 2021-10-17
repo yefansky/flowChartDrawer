@@ -15,7 +15,7 @@ int main()
 
 	while (true)
 	{
-		auto msg = getmessage();
+		auto msg = getmessage(EM_MOUSE);
 
 		static bool s_bFirst = true;
 		static POINT origPos = { 0, 0 };
