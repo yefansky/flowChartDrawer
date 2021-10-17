@@ -67,6 +67,22 @@ void Chart::UnInit()
 	closegraph();			// ¹Ø±Õ»æÍ¼´°¿Ú
 }
 
+static COLORREF GetRandomLightColor()
+{
+	COLORREF colors[] = {
+		RGB(200,200,255),
+		RGB(255,200,200),
+		RGB(200,255,200),
+//		RGB(200,255,255),
+//		RGB(255,255,200),
+//		RGB(255,200,255),
+		RGB(200,200,200)
+	};
+	static int nSeed = rand();
+	nSeed = ++nSeed % _countof(colors);
+	return colors[nSeed];
+}
+
 bool Chart::Parse(Document* pDoc)
 {
 	bool bResult = false;
@@ -90,6 +106,7 @@ bool Chart::Parse(Document* pDoc)
 		z.m_nIndex = rData.m_nIndex;
 
 		z.m_titleRect = { pos.m_nX, pos.m_nY + 20, pos.m_nX + z.m_nWidth, pos.m_nY + 100 };
+		z.m_color = GetRandomLightColor();
 
 		m_Zones.push_back(z);
 		index2ZoneChartMap[z.m_nIndex] = &m_Zones.back();
@@ -187,7 +204,7 @@ bool Chart::Draw()
 	for (auto& rZone : m_Zones)
 	{
 		auto& rPos = rZone.m_pos;
-		Color c(RGB(200,200,255));
+		Color c(rZone.m_color);
 		fillroundrect(rPos.m_nX, rPos.m_nY, rPos.m_nX + rZone.m_nWidth, rPos.m_nY + rZone.m_nHeight, 20, 20);
 		
 		{

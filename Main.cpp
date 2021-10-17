@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Document.h"
 #include "Chart.h"
+#include <time.h>
 
 int main(int nArgNum, char** ppArgs)
 {
@@ -9,6 +10,8 @@ int main(int nArgNum, char** ppArgs)
 	Chart chart;
 	POINT mousepos = {-1, -1};
 	const char* cpszDocPath = "testdata.txt";
+	
+	srand(time(nullptr));
 
 	if (nArgNum == 2)
 		cpszDocPath = ppArgs[1];

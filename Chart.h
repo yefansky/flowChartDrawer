@@ -16,7 +16,7 @@ struct ZoneChart
 	Point m_pos;
 	int m_nWidth = 0;
 	int m_nHeight = 0;
-	int m_nColor = 0;
+	COLORREF m_color;
 	std::string m_strName = "";
 	int m_nIndex = 0;
 	RECT m_titleRect = {0,0,0,0};
