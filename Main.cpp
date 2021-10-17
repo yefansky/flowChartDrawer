@@ -1,17 +1,26 @@
+#include "stdafx.h"
 #include "Document.h"
 #include "Chart.h"
 
-int main()
+int main(int nArgNum, char** ppArgs)
 {
+	bool bRetCode = false;
 	Document doc;
 	Chart chart;
 	POINT mousepos = {-1, -1};
+	const char* cpszDocPath = "testdata.txt";
 
-	chart.Init();
+	if (nArgNum == 2)
+		cpszDocPath = ppArgs[1];
+
+	bRetCode = chart.Init();
+	KGLOG_PROCESS_ERROR(bRetCode &&"Init");
 	
-	doc.Load("testdata.txt");
+	bRetCode = doc.Load(cpszDocPath);
+	KGLOG_PROCESS_ERROR(bRetCode && "Load");
 	
-	chart.Parse(&doc);
+	bRetCode = chart.Parse(&doc);
+	KGLOG_PROCESS_ERROR(bRetCode &&"Parse");
 
 	while (true)
 	{
@@ -49,11 +58,12 @@ int main()
 
 		if (bUpdate || s_bFirst)
 		{
-			chart.Draw();
+			bRetCode = chart.Draw();
+			KGLOG_PROCESS_ERROR(bRetCode && "Draw");
 		}
 
 		s_bFirst = false;
 	}
-	
+Exit0:	
 	return 0;
 }
