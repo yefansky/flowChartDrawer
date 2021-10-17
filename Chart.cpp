@@ -70,17 +70,14 @@ void Chart::UnInit()
 static COLORREF GetRandomLightColor()
 {
 	COLORREF colors[] = {
+		RGB(200,200,200),
 		RGB(200,200,255),
 		RGB(255,200,200),
-		RGB(200,255,200),
-//		RGB(200,255,255),
-//		RGB(255,255,200),
-//		RGB(255,200,255),
-		RGB(200,200,200)
+		RGB(200,255,200)
 	};
-	static int nSeed = rand();
-	nSeed = ++nSeed % _countof(colors);
-	return colors[nSeed];
+	static int nIndex = 0;
+	nIndex = ++nIndex % _countof(colors);
+	return colors[nIndex];
 }
 
 bool Chart::Parse(Document* pDoc)
