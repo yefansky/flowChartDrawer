@@ -19,7 +19,7 @@ struct ZoneChart
 	int m_nColor = 0;
 	std::string m_strName = "";
 	int m_nIndex = 0;
-	RECT m_titleRect;
+	RECT m_titleRect = {0,0,0,0};
 
 	int CenterX()
 	{
@@ -33,8 +33,8 @@ struct FlowChart
 	Point m_end;
 	std::string m_strUpperText = "";
 	std::string m_strLowerText = "";
-	RECT m_labelRect;
-	RECT m_labelRect2;
+	RECT m_labelRect = { 0,0,0,0 };
+	RECT m_labelRect2 = { 0,0,0,0 };
 	unsigned int m_uFormat = 0;
 };
 
@@ -65,6 +65,8 @@ class Chart
 	std::list<FlowChart> m_Flows;
 public:
 	bool Init();
+	void UnInit();
+
 	bool Parse(Document* pDoc);
 	bool Calculate();
 	bool Draw();

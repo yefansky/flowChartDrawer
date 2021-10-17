@@ -56,11 +56,15 @@ static int lines(const STR& str)
 
 bool Chart::Init()
 {
-	initgraph(800, 1500);	// 创建绘图窗口，大小为 640x480 像素
+	initgraph(800, 1000);	// 创建绘图窗口，大小为 640x480 像素
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
-	cleardevice();
 	return true;
+}
+
+void Chart::UnInit()
+{
+	closegraph();			// 关闭绘图窗口
 }
 
 bool Chart::Parse(Document* pDoc)
@@ -176,6 +180,10 @@ bool Chart::Calculate()
 
 bool Chart::Draw()
 {	
+	BeginBatchDraw();
+
+	cleardevice();
+
 	for (auto& rZone : m_Zones)
 	{
 		auto& rPos = rZone.m_pos;
@@ -196,8 +204,7 @@ bool Chart::Draw()
 		drawtext(to_wide_string(rF.m_strUpperText).c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
 		drawtext(to_wide_string(rF.m_strLowerText).c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
 	}
-	
-	_getch();				// 按任意键继续
-	closegraph();			// 关闭绘图窗口
+
+	EndBatchDraw();
 	return true;
 }
