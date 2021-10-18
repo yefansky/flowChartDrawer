@@ -57,7 +57,7 @@ static int lines(const STR& str)
 bool Chart::Init()
 {
 	//initgraph(1000, 1000, EW_SHOWCONSOLE);
-	initgraph(1000, 1000);
+	initgraph(1800, 1960);
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
 	return true;
@@ -208,6 +208,16 @@ bool Chart::Draw()
 		{
 			Color c(BLACK);
 			drawtext(to_wide_string(rZone.m_strName).c_str(), &rZone.m_titleRect, DT_CENTER);
+		}
+
+		{
+			Color c(WHITE);
+			const int nDistance = 500;
+			for (int nY = nDistance; nY < rZone.m_nHeight; nY += nDistance)
+			{
+				RECT rect = { rPos.m_nX, rPos.m_nY + nY,  rPos.m_nX + rZone.m_nWidth,  rPos.m_nY + nY + 50 };
+				drawtext(to_wide_string(rZone.m_strName).c_str(), &rect, DT_CENTER);
+			}
 		}
 	}
 
