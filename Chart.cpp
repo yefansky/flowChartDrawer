@@ -56,7 +56,7 @@ static int lines(const STR& str)
 
 bool Chart::Init()
 {
-	initgraph(1000, 1000);	// 创建绘图窗口，大小为 640x480 像素
+	initgraph(1000, 1000, EW_SHOWCONSOLE);
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
 	return true;

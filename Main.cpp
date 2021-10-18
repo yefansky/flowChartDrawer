@@ -51,9 +51,10 @@ int main(int nArgNum, char** ppArgs)
 				chart.Reset();
 				chart.Parse(&doc);
 				bUpdate = true;
+				
 			}
+			lastModifyTime = modifyTime;
 		}
-		lastModifyTime = modifyTime;
 
 		if (peekmessage(&msg, EM_MOUSE, true))
 		{
