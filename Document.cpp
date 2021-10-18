@@ -26,9 +26,10 @@ bool Document::Load(const char* cpszPath)
 	SECTION section = SECTION::INVALID;
 	int nZoneIndexGenerator = 0;
 	std::map<std::string, int> nick2indexMap;
+	errno_t nError;
 
-	pfFile = fopen(cpszPath, "r");
-	KGLOG_PROCESS_ERROR(pfFile);
+	nError = fopen_s(&pfFile, cpszPath, "r");
+	KGLOG_PROCESS_ERROR(nError == 0 && pfFile);
 
 	while (fgets(szBuffer, sizeof(szBuffer), pfFile))
 	{
@@ -51,7 +52,7 @@ bool Document::Load(const char* cpszPath)
 				{
 					Zone z;
 
-					nRetCode = sscanf(szBuffer, "%[^(](%[^)]", z.m_szName, z.m_szNickName);
+					nRetCode = sscanf_s(szBuffer, "%[^(](%[^)]", z.m_szName, (unsigned)_countof(z.m_szName), z.m_szNickName, (unsigned)_countof(z.m_szNickName));
 					KGLOG_PROCESS_ERROR(nRetCode == 1 || nRetCode == 2);
 
 					if (nRetCode == 1)
@@ -67,10 +68,15 @@ bool Document::Load(const char* cpszPath)
 					Flow f;
 					char szSrc[32];
 					char szDst[32];
-					nRetCode = sscanf(szBuffer, "%[^2]2%s %s %[^#\n]", szSrc, szDst, f.m_szProtocolName, f.m_szDatas);
+					nRetCode = sscanf_s(szBuffer, "%[^2]2%s %s %[^#\n]", 
+						szSrc, (unsigned)_countof(szSrc), 
+						szDst, (unsigned)_countof(szDst), 
+						f.m_szProtocolName, (unsigned)_countof(f.m_szProtocolName), 
+						f.m_szDatas, (unsigned)_countof(f.m_szDatas)
+					);
 					KGLOG_PROCESS_ERROR(nRetCode >= 3);
 
-					sscanf(szBuffer, "%*[^#]#%[^$\n]", f.m_szComment);
+					sscanf_s(szBuffer, "%*[^#]#%[^$\n]", f.m_szComment, (unsigned)_countof(f.m_szComment));
 
 					f.m_nSrc = key2index(szSrc, nick2indexMap);
 					f.m_nDst = key2index(szDst, nick2indexMap);

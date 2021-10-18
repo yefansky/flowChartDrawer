@@ -56,7 +56,8 @@ static int lines(const STR& str)
 
 bool Chart::Init()
 {
-	initgraph(1000, 1000, EW_SHOWCONSOLE);
+	//initgraph(1000, 1000, EW_SHOWCONSOLE);
+	initgraph(1000, 1000);
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
 	return true;
@@ -108,6 +109,7 @@ bool Chart::Parse(Document* pDoc)
 		index2ZoneChartMap[z.m_nIndex] = &m_Zones.back();
 	}
 
+	KGLOG_PROCESS_ERROR(!m_Zones.empty());
 	nY = m_Zones.front().m_titleRect.bottom;
 
 	for (auto& rData : pDoc->m_Flows)

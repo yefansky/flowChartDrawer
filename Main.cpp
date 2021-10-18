@@ -20,7 +20,8 @@ int main(int nArgNum, char** ppArgs)
 	POINT mousepos = {-1, -1};
 	const char* cpszDocPath = "testdata.txt";
 	ExMessage msg;
-	time_t lastModifyTime = 0;
+	time_t nLastModifyTime = 0;
+	time_t nNextCheckFileChangeTime = 0;
 
 	if (nArgNum == 2)
 		cpszDocPath = ppArgs[1];
@@ -31,46 +32,53 @@ int main(int nArgNum, char** ppArgs)
 	bRetCode = doc.Load(cpszDocPath);
 	KGLOG_PROCESS_ERROR(bRetCode && "Load");
 
-	lastModifyTime = GetFileModifyTime(cpszDocPath);
+	nLastModifyTime = GetFileModifyTime(cpszDocPath);
 
 	bRetCode = chart.Parse(&doc);
 	KGLOG_PROCESS_ERROR(bRetCode && "Parse");
 
+	bRetCode = chart.Draw();
+	KGLOG_PROCESS_ERROR(bRetCode && "Draw");
+
 	while (true)
 	{
 		bool bUpdate = false;
+		static bool s_bFirst = true;
+		time_t nNow = time(NULL);
 
-		time_t modifyTime = GetFileModifyTime(cpszDocPath);
-		
-		if (lastModifyTime != modifyTime)
+		if (nNow > nNextCheckFileChangeTime)
 		{
-			doc.Reset();
-			bRetCode = doc.Load(cpszDocPath);
-			if (bRetCode)
+			time_t modifyTime = GetFileModifyTime(cpszDocPath);
+
+			if (nLastModifyTime != modifyTime)
 			{
-				chart.Reset();
-				chart.Parse(&doc);
-				bUpdate = true;
-				
+				doc.Reset();
+				bRetCode = doc.Load(cpszDocPath);
+				if (bRetCode)
+				{
+					chart.Reset();
+					chart.Parse(&doc);
+					bUpdate = true;
+					nLastModifyTime = modifyTime;
+				}
 			}
-			lastModifyTime = modifyTime;
+			nNextCheckFileChangeTime = nNow + 1;
 		}
 
 		if (peekmessage(&msg, EM_MOUSE, true))
 		{
-			static bool s_bFirst = true;
 			static POINT origPos = { 0, 0 };
 
 			switch (msg.message)
 			{
 			case WM_MOUSEWHEEL:
-			{
-				static int nYOffset = 0;
-				origPos.y += msg.wheel;;
-				setorigin(origPos.x, origPos.y);
-				bUpdate = true;
-			}
-			break;
+				{
+					static int nYOffset = 0;
+					origPos.y += msg.wheel;;
+					setorigin(origPos.x, origPos.y);
+					bUpdate = true;
+				}
+				break;
 			case WM_MOUSEMOVE:
 				if (msg.lbutton)
 				{
@@ -85,15 +93,15 @@ int main(int nArgNum, char** ppArgs)
 				mousepos = { msg.x, msg.y };
 				break;
 			}
-
-			if (bUpdate || s_bFirst)
-			{
-				bRetCode = chart.Draw();
-				KGLOG_PROCESS_ERROR(bRetCode && "Draw");
-			}
-
-			s_bFirst = false;
 		}
+
+		if (bUpdate || s_bFirst)
+		{
+			bRetCode = chart.Draw();
+			KGLOG_PROCESS_ERROR(bRetCode && "Draw");
+		}
+
+		s_bFirst = false;
 
 		Sleep(1);
 	}
