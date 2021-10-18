@@ -66,9 +66,21 @@ class Chart
 public:
 	bool Init();
 	void UnInit();
+	void Reset()
+	{ 
+		m_Zones.clear(); 
+		m_Flows.clear();
+		m_nColorRandomIndex = 0;
+	}
 
 	bool Parse(Document* pDoc);
 	bool Calculate();
 	bool Draw();
+
+private:
+	COLORREF GetRandomLightColor();
+
+private:
+	int m_nColorRandomIndex = 0;
 };
 

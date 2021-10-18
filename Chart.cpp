@@ -67,7 +67,7 @@ void Chart::UnInit()
 	closegraph();			// ¹Ø±Õ»æÍ¼´°¿Ú
 }
 
-static COLORREF GetRandomLightColor()
+COLORREF Chart::GetRandomLightColor()
 {
 	COLORREF colors[] = {
 		RGB(200,200,200),
@@ -75,9 +75,8 @@ static COLORREF GetRandomLightColor()
 		RGB(255,200,200),
 		RGB(200,255,200)
 	};
-	static int nIndex = 0;
-	nIndex = ++nIndex % _countof(colors);
-	return colors[nIndex];
+	m_nColorRandomIndex = ++m_nColorRandomIndex % _countof(colors);
+	return colors[m_nColorRandomIndex];
 }
 
 bool Chart::Parse(Document* pDoc)

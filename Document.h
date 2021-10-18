@@ -26,5 +26,10 @@ public:
 	std::vector<Flow> m_Flows;
 public:
 	bool Load(const char* cpszPath);
+	void Reset()
+	{
+		m_Zones.clear();
+		m_Flows.clear();
+	}
 };
 
