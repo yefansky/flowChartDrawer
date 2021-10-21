@@ -195,8 +195,8 @@ bool Chart::Calculate()
 
 bool Chart::Draw()
 {	
-	BeginBatchDraw();
-
+	setbkcolor(WHITE);
+	setbkmode(TRANSPARENT);
 	cleardevice();
 
 	for (auto& rZone : m_Zones)
@@ -230,6 +230,5 @@ bool Chart::Draw()
 		drawtext(to_wide_string(rF.m_strLowerText).c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
 	}
 
-	EndBatchDraw();
 	return true;
 }
