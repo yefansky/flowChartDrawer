@@ -24,7 +24,7 @@ int main(int nArgNum, char** ppArgs)
 	POINT		origPos						= { 0, 0 };
 	time_t		nLastModifyTime				= 0;
 	time_t		nNextCheckFileChangeTime	= 0;
-	IMAGE		img(2000, 20000);
+	IMAGE		img(5000, 20000);
 	Document	doc;
 	Chart		chart;
 
