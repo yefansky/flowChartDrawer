@@ -44,10 +44,11 @@ int main(int nArgNum, char** ppArgs)
 
 	while (true)
 	{
-		bool bMove = false;
-		bool bRedraw = false;
-		static bool s_bFirst = true;
-		time_t nNow = time(NULL);
+		static bool s_bFirst	= true;
+		bool		bMove		= false;
+		bool		bRedraw		= false;
+		bool		bIdle		= true;
+		time_t		nNow		= time(NULL);
 
 		if (nNow > nNextCheckFileChangeTime)
 		{
@@ -70,13 +71,17 @@ int main(int nArgNum, char** ppArgs)
 
 		if (bRedraw || s_bFirst)
 		{
+			bIdle = false;
+
 			SetWorkingImage(&img);
 			bRetCode = chart.Draw();
 			SetWorkingImage();
 			KGLOG_PROCESS_ERROR(bRetCode && "Draw");
 
+			BeginBatchDraw();
 			cleardevice();
 			putimage(origPos.x, origPos.y, &img);
+			EndBatchDraw();
 		}
 
 		if (peekmessage(&msg, EM_MOUSE, true))
@@ -106,14 +111,19 @@ int main(int nArgNum, char** ppArgs)
 
 			if (bMove)
 			{
+				bIdle = false;
+
+				BeginBatchDraw();
 				cleardevice();
 				putimage(origPos.x, origPos.y, &img);
+				EndBatchDraw();
 			}
 		}
 
 		s_bFirst = false;
 
-		Sleep(1);
+		if (bIdle)
+			Sleep(1);
 	}
 Exit0:	
 	return 0;
