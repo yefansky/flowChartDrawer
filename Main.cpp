@@ -19,7 +19,6 @@ int main(int nArgNum, char** ppArgs)
 {
 	bool		bRetCode					= false;
 	const char* cpszDocPath					= "testdata.txt";
-	ExMessage	msg;
 	POINT		mousepos					= { -1, -1 };
 	POINT		origPos						= { 0, 0 };
 	time_t		nLastModifyTime				= 0;
@@ -27,6 +26,8 @@ int main(int nArgNum, char** ppArgs)
 	IMAGE		img(5000, 20000);
 	Document	doc;
 	Chart		chart;
+	ExMessage	msg;
+	HWND		hWnd;
 
 	if (nArgNum == 2)
 		cpszDocPath = ppArgs[1];
@@ -36,6 +37,11 @@ int main(int nArgNum, char** ppArgs)
 	
 	bRetCode = doc.Load(cpszDocPath);
 	KGLOG_PROCESS_ERROR(bRetCode && "Load");
+
+	hWnd = GetHWnd();
+	assert(hWnd);
+
+	SetWindowText(hWnd, to_wide_string(cpszDocPath).c_str());
 
 	nLastModifyTime = GetFileModifyTime(cpszDocPath);
 

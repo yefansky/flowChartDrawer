@@ -4,9 +4,6 @@
 #include <map>
 #include <graphics.h>		// 引用图形库头文件
 #include <conio.h>
-#include <string>
-#include <locale>
-#include <codecvt>
 
 static void DrawArraw(Point s, Point d)
 {
@@ -29,19 +26,6 @@ static void DrawArraw(Point s, Point d)
 		line(x2, y2, int(tmpx + increX), int(tmpy + increY));
 		line(x2, y2, int(tmpx - increX), int(tmpy - increY));
 	}
-}
-
-inline std::wstring to_wide_string(const std::string& input)
-{
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	return converter.from_bytes(input);
-}
-// convert wstring to string 
-inline std::string to_byte_string(const std::wstring& input)
-{
-	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	return converter.to_bytes(input);
 }
 
 template <typename STR>
