@@ -5,6 +5,8 @@
 #include <graphics.h>		// 引用图形库头文件
 #include <conio.h>
 
+static const int s_cnContentMaxWidthPerLine = 400;
+
 static void DrawArraw(Point s, Point d)
 {
 	int x1 = s.m_nX, y1 = s.m_nY, x2 = d.m_nX, y2 = d.m_nY;
@@ -36,6 +38,39 @@ static int lines(const STR& str)
 		if (c == '\n')
 			++nResult;
 	return nResult;
+}
+
+static void WordWrap(std::wstring& rstrText, const size_t cnPixelWidthPerLine = 120)
+{
+	std::wstring strResult;
+	int nCount = 0;
+	wchar_t preC = 0;
+
+	for (auto c : rstrText)
+	{
+		if (nCount == 0 && iswspace(c))
+			NULL;
+		else
+		{
+			nCount+= textwidth(c);
+
+			if (c == L'\n')
+			{
+				nCount = 0;
+			}
+			else if (nCount > cnPixelWidthPerLine && !iswpunct(c))
+			{
+				if (iswalpha(c) && iswalpha(preC))
+					strResult += L"-";
+
+				strResult += L"\n";
+				nCount = iswspace(c) ? 0 : textwidth(c);
+			}
+			strResult += c;
+		}
+		preC = c;
+	}
+	rstrText = strResult;
 }
 
 bool Chart::Init()
@@ -83,7 +118,7 @@ bool Chart::Parse(Document* pDoc)
 		nX += 250;
 		z.m_nWidth = 200;
 		z.m_nHeight = 1800;
-		z.m_strName = rData.m_szName;
+		z.m_strName = to_wide_string(rData.m_szName);
 		z.m_nIndex = rData.m_nIndex;
 
 		z.m_titleRect = { pos.m_nX, pos.m_nY + 20, pos.m_nX + z.m_nWidth, pos.m_nY + 100 };
@@ -106,19 +141,19 @@ bool Chart::Parse(Document* pDoc)
 		KGLOG_PROCESS_ERROR(pSrcZone);
 		KGLOG_PROCESS_ERROR(pDstZone);
 
-		f.m_strUpperText = rData.m_szProtocolName;
-		f.m_strLowerText = rData.m_szDatas;
+		f.m_strUpperText = to_wide_string(rData.m_szProtocolName);
+		f.m_strLowerText = to_wide_string(rData.m_szDatas);
 		if (rData.m_szComment[0])
 		{
-			f.m_strLowerText += "\n";
-			f.m_strLowerText += rData.m_szComment;
+			f.m_strLowerText += L"\n";
+			f.m_strLowerText += to_wide_string(rData.m_szComment);
 		}
 
 		if (pSrcZone != pDstZone)
 		{
 			if (!f.m_strUpperText.empty())
 			{
-				nY += lines(f.m_strUpperText) * textheight(to_wide_string(f.m_strUpperText).c_str()) + 30;
+				nY += lines(f.m_strUpperText) * textheight(f.m_strUpperText.c_str()) + 30;
 			}
 
 			f.m_start = { pSrcZone->CenterX(), nY };
@@ -129,22 +164,29 @@ bool Chart::Parse(Document* pDoc)
 				max(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY - 10
 			};
+
+			WordWrap(f.m_strLowerText, min(abs(f.m_start.m_nX - f.m_end.m_nX), s_cnContentMaxWidthPerLine));
+			if (!f.m_strLowerText.empty())
+			{
+				nY += lines(f.m_strLowerText) * textheight(f.m_strLowerText.c_str()) + 30;
+			}
+
 			f.m_labelRect2 = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY + 10,
 				max(f.m_start.m_nX, f.m_end.m_nX),
-				f.m_start.m_nY + 50
+				nY
 			};
 			f.m_uFormat = f.m_start.m_nX < f.m_end.m_nX ? DT_LEFT : DT_RIGHT;
-
-			nY = f.m_start.m_nY + 50;
 		}
 		else
 		{
 			f.m_start = { pSrcZone->CenterX(), nY };
+			WordWrap(f.m_strLowerText, s_cnContentMaxWidthPerLine);
+
 			if (!f.m_strLowerText.empty())
-				f.m_strLowerText = "----------------\n" + f.m_strLowerText;
-			auto s = to_wide_string(f.m_strUpperText + "\n" + f.m_strLowerText);
+				f.m_strLowerText = L"----------------\n" + f.m_strLowerText;
+			auto s = f.m_strUpperText + L"\n" + f.m_strLowerText;
 			int textHeight = textheight(s.c_str()) * lines(s);
 			nY += textHeight + 60;
 			f.m_end = { pDstZone->CenterX(), nY };
@@ -154,12 +196,12 @@ bool Chart::Parse(Document* pDoc)
 			};
 			f.m_labelRect2 = {
 				f.m_start.m_nX + 10, (f.m_end.m_nY + f.m_start.m_nY - 10) / 2,
-				f.m_start.m_nX + 10 + 1000, f.m_end.m_nY - 10
+				f.m_start.m_nX + 10 + 60, f.m_end.m_nY - 10
 			};
 			f.m_uFormat = DT_LEFT;
 		}
 
-		nY += 30;
+		nY += 50;
 
 		m_Flows.push_back(f);
 	}
@@ -191,7 +233,7 @@ bool Chart::Draw()
 		
 		{
 			Color c(BLACK);
-			drawtext(to_wide_string(rZone.m_strName).c_str(), &rZone.m_titleRect, DT_CENTER);
+			drawtext(rZone.m_strName.c_str(), &rZone.m_titleRect, DT_CENTER);
 		}
 
 		{
@@ -200,7 +242,7 @@ bool Chart::Draw()
 			for (int nY = nDistance; nY < rZone.m_nHeight; nY += nDistance)
 			{
 				RECT rect = { rPos.m_nX, rPos.m_nY + nY,  rPos.m_nX + rZone.m_nWidth,  rPos.m_nY + nY + 50 };
-				drawtext(to_wide_string(rZone.m_strName).c_str(), &rect, DT_CENTER);
+				drawtext(rZone.m_strName.c_str(), &rect, DT_CENTER);
 			}
 		}
 	}
@@ -210,8 +252,8 @@ bool Chart::Draw()
 		Color c(BLACK);
 		DrawArraw(rF.m_start, rF.m_end);
 
-		drawtext(to_wide_string(rF.m_strUpperText).c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
-		drawtext(to_wide_string(rF.m_strLowerText).c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
+		drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
+		drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
 	}
 
 	return true;

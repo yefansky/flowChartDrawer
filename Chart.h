@@ -17,7 +17,7 @@ struct ZoneChart
 	int m_nWidth = 0;
 	int m_nHeight = 0;
 	COLORREF m_color;
-	std::string m_strName = "";
+	std::wstring m_strName = L"";
 	int m_nIndex = 0;
 	RECT m_titleRect = {0,0,0,0};
 
@@ -31,8 +31,8 @@ struct FlowChart
 {
 	Point m_start;
 	Point m_end;
-	std::string m_strUpperText = "";
-	std::string m_strLowerText = "";
+	std::wstring m_strUpperText = L"";
+	std::wstring m_strLowerText = L"";
 	RECT m_labelRect = { 0,0,0,0 };
 	RECT m_labelRect2 = { 0,0,0,0 };
 	unsigned int m_uFormat = 0;
