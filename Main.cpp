@@ -15,6 +15,30 @@ time_t GetFileModifyTime(const char* cpszFilePath)
 	return date;
 }
 
+void ProcessSave(Chart* pChart, IMAGE* pImg, const char* cpszDocPath)
+{
+	int nWidth	= 0;
+	int nHeight = 0;
+	wchar_t szPath[128];
+
+	assert(pChart);
+	assert(pImg);
+	assert(cpszDocPath);
+
+	std::wstring strDocPath = to_wide_string(cpszDocPath);
+	std::wstring strSavePath = strDocPath.substr(0, strDocPath.rfind(L".")) + L".png";
+
+	InputBox(szPath, _countof(szPath), L"Êä³öÍ¼Æ¬Â·¾¶", NULL, strSavePath.c_str(), 0, 0, false);
+
+	IMAGE copy(*pImg);
+
+	pChart->GetSize(&nWidth, &nHeight);
+	copy.Resize(nWidth, nHeight);
+
+	if (szPath)
+		saveimage(szPath, &copy);
+}
+
 int main(int nArgNum, char** ppArgs)
 {
 	bool		bRetCode					= false;
@@ -111,7 +135,11 @@ int main(int nArgNum, char** ppArgs)
 					}
 					bMove = true;
 				}
+
 				mousepos = { msg.x, msg.y };
+				break;
+			case WM_RBUTTONDOWN:
+				ProcessSave(&chart, &img, cpszDocPath);
 				break;
 			}
 

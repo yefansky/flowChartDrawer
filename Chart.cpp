@@ -76,7 +76,7 @@ static void WordWrap(std::wstring& rstrText, const size_t cnPixelWidthPerLine = 
 bool Chart::Init()
 {
 	//initgraph(1000, 1000, EW_SHOWCONSOLE);
-	initgraph(1800, 1960);
+	initgraph(1800, 1600);
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
 	return true;
@@ -255,6 +255,24 @@ bool Chart::Draw()
 		drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
 		drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
 	}
+
+	return true;
+}
+
+bool Chart::GetSize(int* pnWidth, int* pnHeight)
+{
+	int nHeight = 0;
+
+	assert(pnWidth);
+	assert(pnHeight);
+
+	*pnWidth = m_Zones.size()* 250 + 100;
+	
+	for (auto& rZ : m_Zones)
+		if (nHeight < rZ.m_nHeight)
+			nHeight = rZ.m_nHeight;
+
+	*pnHeight = nHeight;
 
 	return true;
 }

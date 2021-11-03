@@ -76,7 +76,7 @@ public:
 	bool Parse(Document* pDoc);
 	bool Calculate();
 	bool Draw();
-
+	bool GetSize(int* pnWidth, int* pnHeight);
 private:
 	COLORREF GetRandomLightColor();
 
