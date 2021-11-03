@@ -5,10 +5,37 @@
 #include <graphics.h>		// 引用图形库头文件
 #include <conio.h>
 
-static const int s_cnContentMaxWidthPerLine = 400;
+#define DEVICE_WIDTH 1800
+#define DEVICE_HEIGHT 1600
+
+#define CONTENT_MAX_WIDTH_PER_LINE 400
+#define PAGE_LEFT_DISTANCE	50
+#define PAGE_TOP_DISTANCE 50
+#define PAGE_RIGHT_DISTANCE 100
+
+#define ZONE_LEFT_EDGE_INTERVAL 250
+#define ZONE_WIDTH 200
+#define ZONE_HEIGHT_INIT_VALUE 1800
+#define ZONE_TITLE_TOP_DISTANCE 20
+#define ZONE_TITLE_HEIGHT 100
+#define ZONE_ROUND_RECT_CORNER_LENGTH 20
+#define ZONE_WATER_MARK_TEXT_HEIGHT 50
+#define ZONE_WATER_MARK_Y_INTERVAL 500
+
+#define FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC 30
+#define FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC 10
+#define FLOW_VERTICAL_LEFT_DISTANCE 10
+#define FLOW_VERTICAL_TOP_DISTANCE 10
+#define FLOW_VERTICAL_UPPER_TEXT_WIDTH 1000
+#define FLOW_VERTICAL_LOWER_TEXT_WIDTH 60
+#define FLOW_VERTICAL_BOTTOM_DISTANCE 10
+#define FLOW_BLOCK_Y_DISTANCE 50
+#define FLOW_VERTICAL_ARROW_EXT_LENGTH 60
 
 static void DrawArraw(Point s, Point d)
 {
+	const int cnArrowEdgeDistance = 6;
+
 	int x1 = s.m_nX, y1 = s.m_nY, x2 = d.m_nX, y2 = d.m_nY;
 
 	line(x1, y1, x2, y2);
@@ -17,14 +44,14 @@ static void DrawArraw(Point s, Point d)
 	double tmpy = double(y1 + (y2 - y1) * (1 - (12 * sqrt(3) / 2) / distance));
 	if (y1 == y2)
 	{
-		line(x2, y2, int(tmpx), int(tmpy + 6));
-		line(x2, y2, int(tmpx), int(tmpy - 6));
+		line(x2, y2, int(tmpx), int(tmpy + cnArrowEdgeDistance));
+		line(x2, y2, int(tmpx), int(tmpy - cnArrowEdgeDistance));
 	}
 	else
 	{
 		double k = (double(x2) - double(x1)) / (double(y1) - double(y2));
-		double increX = 6 / sqrt(k * k + 1);
-		double increY = 6 * k / sqrt(k * k + 1);
+		double increX = cnArrowEdgeDistance / sqrt(k * k + 1);
+		double increY = cnArrowEdgeDistance * k / sqrt(k * k + 1);
 		line(x2, y2, int(tmpx + increX), int(tmpy + increY));
 		line(x2, y2, int(tmpx - increX), int(tmpy - increY));
 	}
@@ -42,9 +69,9 @@ static int lines(const STR& str)
 
 static void WordWrap(std::wstring& rstrText, const size_t cnPixelWidthPerLine = 120)
 {
-	std::wstring strResult;
-	int nCount = 0;
-	wchar_t preC = 0;
+	int				nCount	= 0;
+	wchar_t			preC	= 0;
+	std::wstring	strResult;
 
 	for (auto c : rstrText)
 	{
@@ -76,7 +103,7 @@ static void WordWrap(std::wstring& rstrText, const size_t cnPixelWidthPerLine = 
 bool Chart::Init()
 {
 	//initgraph(1000, 1000, EW_SHOWCONSOLE);
-	initgraph(1800, 1600);
+	initgraph(DEVICE_WIDTH, DEVICE_HEIGHT);
 	setbkcolor(WHITE);
 	setbkmode(TRANSPARENT);
 	return true;
@@ -101,11 +128,11 @@ COLORREF Chart::GetRandomLightColor()
 
 bool Chart::Parse(Document* pDoc)
 {
-	bool bResult = false;
-	int nRetCode = 0;
-	int nX = 50;
-	int nY = 50;
-	std::map<int, ZoneChart*> index2ZoneChartMap;
+	bool						bResult		= false;
+	int							nRetCode	= 0;
+	int							nX			= PAGE_LEFT_DISTANCE;
+	int							nY			= PAGE_TOP_DISTANCE;
+	std::map<int, ZoneChart*>	index2ZoneChartMap;
 
 	m_Zones.clear();
 	m_Flows.clear();
@@ -115,13 +142,16 @@ bool Chart::Parse(Document* pDoc)
 		ZoneChart z;
 		Point pos;
 		z.m_pos = pos = { nX, nY };
-		nX += 250;
-		z.m_nWidth = 200;
-		z.m_nHeight = 1800;
+		nX += ZONE_LEFT_EDGE_INTERVAL;
+		z.m_nWidth = ZONE_WIDTH;
+		z.m_nHeight = ZONE_HEIGHT_INIT_VALUE;
 		z.m_strName = to_wide_string(rData.m_szName);
 		z.m_nIndex = rData.m_nIndex;
 
-		z.m_titleRect = { pos.m_nX, pos.m_nY + 20, pos.m_nX + z.m_nWidth, pos.m_nY + 100 };
+		z.m_titleRect = { 
+			pos.m_nX, pos.m_nY + ZONE_TITLE_TOP_DISTANCE, 
+			pos.m_nX + z.m_nWidth, pos.m_nY + ZONE_TITLE_HEIGHT
+		};
 		z.m_color = GetRandomLightColor();
 
 		m_Zones.push_back(z);
@@ -153,27 +183,27 @@ bool Chart::Parse(Document* pDoc)
 		{
 			if (!f.m_strUpperText.empty())
 			{
-				nY += lines(f.m_strUpperText) * textheight(f.m_strUpperText.c_str()) + 30;
+				nY += lines(f.m_strUpperText) * textheight(f.m_strUpperText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
 			}
 
 			f.m_start = { pSrcZone->CenterX(), nY };
 			f.m_end = { pDstZone->CenterX(), nY };
 			f.m_labelRect = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
-				f.m_start.m_nY - 30,
+				f.m_start.m_nY - FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC,
 				max(f.m_start.m_nX, f.m_end.m_nX),
-				f.m_start.m_nY - 10
+				f.m_start.m_nY - FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC
 			};
 
-			WordWrap(f.m_strLowerText, min(abs(f.m_start.m_nX - f.m_end.m_nX), s_cnContentMaxWidthPerLine));
+			WordWrap(f.m_strLowerText, min(abs(f.m_start.m_nX - f.m_end.m_nX), CONTENT_MAX_WIDTH_PER_LINE));
 			if (!f.m_strLowerText.empty())
 			{
-				nY += lines(f.m_strLowerText) * textheight(f.m_strLowerText.c_str()) + 30;
+				nY += lines(f.m_strLowerText) * textheight(f.m_strLowerText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
 			}
 
 			f.m_labelRect2 = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
-				f.m_start.m_nY + 10,
+				f.m_start.m_nY + FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC,
 				max(f.m_start.m_nX, f.m_end.m_nX),
 				nY
 			};
@@ -182,26 +212,30 @@ bool Chart::Parse(Document* pDoc)
 		else
 		{
 			f.m_start = { pSrcZone->CenterX(), nY };
-			WordWrap(f.m_strLowerText, s_cnContentMaxWidthPerLine);
+			WordWrap(f.m_strLowerText, CONTENT_MAX_WIDTH_PER_LINE);
 
 			if (!f.m_strLowerText.empty())
 				f.m_strLowerText = L"----------------\n" + f.m_strLowerText;
 			auto s = f.m_strUpperText + L"\n" + f.m_strLowerText;
 			int textHeight = textheight(s.c_str()) * lines(s);
-			nY += textHeight + 60;
+			nY += textHeight + FLOW_VERTICAL_ARROW_EXT_LENGTH;
 			f.m_end = { pDstZone->CenterX(), nY };
 			f.m_labelRect = { 
-				f.m_start.m_nX + 10, f.m_start.m_nY + 10, 
-				f.m_start.m_nX + 10 + 1000, (f.m_end.m_nY + f.m_start.m_nY - 10) / 2
+				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE, 
+				f.m_start.m_nY + FLOW_VERTICAL_TOP_DISTANCE,
+				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_UPPER_TEXT_WIDTH,
+				(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2
 			};
 			f.m_labelRect2 = {
-				f.m_start.m_nX + 10, (f.m_end.m_nY + f.m_start.m_nY - 10) / 2,
-				f.m_start.m_nX + 10 + 60, f.m_end.m_nY - 10
+				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE, 
+				(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2,
+				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_LOWER_TEXT_WIDTH,
+				f.m_end.m_nY - FLOW_VERTICAL_BOTTOM_DISTANCE
 			};
 			f.m_uFormat = DT_LEFT;
 		}
 
-		nY += 50;
+		nY += FLOW_BLOCK_Y_DISTANCE;
 
 		m_Flows.push_back(f);
 	}
@@ -229,7 +263,9 @@ bool Chart::Draw()
 	{
 		auto& rPos = rZone.m_pos;
 		Color c(rZone.m_color);
-		fillroundrect(rPos.m_nX, rPos.m_nY, rPos.m_nX + rZone.m_nWidth, rPos.m_nY + rZone.m_nHeight, 20, 20);
+		fillroundrect(rPos.m_nX, rPos.m_nY, rPos.m_nX + rZone.m_nWidth, rPos.m_nY + rZone.m_nHeight, 
+			ZONE_ROUND_RECT_CORNER_LENGTH, ZONE_ROUND_RECT_CORNER_LENGTH
+		);
 		
 		{
 			Color c(BLACK);
@@ -238,10 +274,13 @@ bool Chart::Draw()
 
 		{
 			Color c(WHITE);
-			const int nDistance = 500;
+			const int nDistance = ZONE_WATER_MARK_Y_INTERVAL;
 			for (int nY = nDistance; nY < rZone.m_nHeight; nY += nDistance)
 			{
-				RECT rect = { rPos.m_nX, rPos.m_nY + nY,  rPos.m_nX + rZone.m_nWidth,  rPos.m_nY + nY + 50 };
+				RECT rect = { 
+					rPos.m_nX, rPos.m_nY + nY,  rPos.m_nX + rZone.m_nWidth,  
+					rPos.m_nY + nY + ZONE_WATER_MARK_TEXT_HEIGHT 
+				};
 				drawtext(rZone.m_strName.c_str(), &rect, DT_CENTER);
 			}
 		}
@@ -266,7 +305,7 @@ bool Chart::GetSize(int* pnWidth, int* pnHeight)
 	assert(pnWidth);
 	assert(pnHeight);
 
-	*pnWidth = m_Zones.size()* 250 + 100;
+	*pnWidth = m_Zones.size() * ZONE_LEFT_EDGE_INTERVAL + PAGE_RIGHT_DISTANCE;
 	
 	for (auto& rZ : m_Zones)
 		if (nHeight < rZ.m_nHeight)

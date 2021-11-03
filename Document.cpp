@@ -2,6 +2,9 @@
 #include "Document.h"
 #include <map>
 
+#define SMALL_BUFFER_LEN	32
+#define MIDDLE_BUFFER_LEN	1024
+
 enum class SECTION
 {
 	INVALID,
@@ -19,14 +22,14 @@ static int key2index(const char* cpszKey, const std::map<std::string, int>& cMap
 
 bool Document::Load(const char* cpszPath)
 {
-	bool bResult = false;
-	int nRetCode = 0;
-	FILE* pfFile = nullptr;
-	char szBuffer[1024];
-	SECTION section = SECTION::INVALID;
-	int nZoneIndexGenerator = 0;
-	std::map<std::string, int> nick2indexMap;
-	errno_t nError;
+	bool						bResult				= false;
+	int							nRetCode			= 0;
+	FILE*						pfFile				= nullptr;
+	SECTION						section				= SECTION::INVALID;
+	int							nZoneIndexGenerator = 0;
+	char						szBuffer[MIDDLE_BUFFER_LEN];
+	std::map<std::string, int>	nick2indexMap;
+	errno_t						nError;
 
 	nError = fopen_s(&pfFile, cpszPath, "r");
 	KGLOG_PROCESS_ERROR(nError == 0 && pfFile);
@@ -66,8 +69,8 @@ bool Document::Load(const char* cpszPath)
 			case SECTION::FLOW:
 				{
 					Flow f;
-					char szSrc[32];
-					char szDst[32];
+					char szSrc[SMALL_BUFFER_LEN];
+					char szDst[SMALL_BUFFER_LEN];
 					nRetCode = sscanf_s(szBuffer, "%[^2]2%s %s %[^#\n]", 
 						szSrc, (unsigned)_countof(szSrc), 
 						szDst, (unsigned)_countof(szDst), 

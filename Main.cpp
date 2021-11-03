@@ -4,6 +4,11 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#define PATH_MAX_LEN 512
+
+#define IMG_BUFFER_WIDTH 5000
+#define IMG_BUFFER_HEIGHT 20000
+
 time_t GetFileModifyTime(const char* cpszFilePath)
 {
 	struct stat attrib;
@@ -17,9 +22,9 @@ time_t GetFileModifyTime(const char* cpszFilePath)
 
 void ProcessSave(Chart* pChart, IMAGE* pImg, const char* cpszDocPath)
 {
-	int nWidth	= 0;
-	int nHeight = 0;
-	wchar_t szPath[128];
+	int		nWidth	= 0;
+	int		nHeight = 0;
+	wchar_t szPath[PATH_MAX_LEN];
 
 	assert(pChart);
 	assert(pImg);
@@ -47,7 +52,7 @@ int main(int nArgNum, char** ppArgs)
 	POINT		origPos						= { 0, 0 };
 	time_t		nLastModifyTime				= 0;
 	time_t		nNextCheckFileChangeTime	= 0;
-	IMAGE		img(5000, 20000);
+	IMAGE		img(IMG_BUFFER_WIDTH, IMG_BUFFER_HEIGHT);
 	Document	doc;
 	Chart		chart;
 	ExMessage	msg;
