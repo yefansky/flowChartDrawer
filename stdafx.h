@@ -32,16 +32,17 @@ inline std::wstring to_wide_string(const std::string & input)
 inline std::string to_byte_string(const std::wstring & input)
 {
 	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter_utf8;
-	static std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> 
-		converter_gbk(new std::codecvt_byname < wchar_t, char, mbstate_t>(GBK_CODE_PAGE));
-	std::string result;
-
-	try {
-		result = converter_utf8.to_bytes(input);
-	}
-	catch (...)
-	{
-		result = converter_gbk.to_bytes(input);
-	}
-	return result;
+// 	static std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> 
+// 		converter_gbk(new std::codecvt_byname < wchar_t, char, mbstate_t>(GBK_CODE_PAGE));
+// 	std::string result;
+// 
+// 	try {
+// 		result = converter_utf8.to_bytes(input);
+// 	}
+// 	catch (...)
+// 	{
+// 		result = converter_gbk.to_bytes(input);
+// 	}
+// 	return result;
+	return converter_utf8.to_bytes(input);
 }
