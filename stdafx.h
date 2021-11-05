@@ -10,15 +10,38 @@
 #define SAFE_CUT_OFF(array) array[sizeof(array) - 1] = 0;
 #define SAFE_STR_CPY(ds, src) strncpy_s(ds, src, sizeof(ds)); SAFE_CUT_OFF(ds);
 
+#define GBK_CODE_PAGE ".936"
+
 inline std::wstring to_wide_string(const std::string & input)
 {
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	return converter.from_bytes(input);
+	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter_utf8;
+	static std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> 
+		converter_gbk(new std::codecvt_byname < wchar_t, char, mbstate_t>(GBK_CODE_PAGE));
+	std::wstring result;
+	
+	try {
+		result = converter_utf8.from_bytes(input);
+	}
+ 	catch (...)
+ 	{
+ 		result = converter_gbk.from_bytes(input);
+ 	}
+	return result;
 }
-// convert wstring to string 
+
 inline std::string to_byte_string(const std::wstring & input)
 {
-	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	return converter.to_bytes(input);
+	static std::wstring_convert<std::codecvt_utf8<wchar_t>> converter_utf8;
+	static std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> 
+		converter_gbk(new std::codecvt_byname < wchar_t, char, mbstate_t>(GBK_CODE_PAGE));
+	std::string result;
+
+	try {
+		result = converter_utf8.to_bytes(input);
+	}
+	catch (...)
+	{
+		result = converter_gbk.to_bytes(input);
+	}
+	return result;
 }
