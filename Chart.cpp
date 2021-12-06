@@ -269,7 +269,7 @@ bool Chart::Draw()
 		
 		{
 			Color c(BLACK);
-			drawtext(rZone.m_strName.c_str(), &rZone.m_titleRect, DT_CENTER);
+			drawtext(rZone.m_strName.c_str(), &rZone.m_titleRect, DT_CENTER | DT_NOPREFIX);
 		}
 
 		{
@@ -281,7 +281,7 @@ bool Chart::Draw()
 					rPos.m_nX, rPos.m_nY + nY,  rPos.m_nX + rZone.m_nWidth,  
 					rPos.m_nY + nY + ZONE_WATER_MARK_TEXT_HEIGHT 
 				};
-				drawtext(rZone.m_strName.c_str(), &rect, DT_CENTER);
+				drawtext(rZone.m_strName.c_str(), &rect, DT_CENTER | DT_NOPREFIX);
 			}
 		}
 	}
@@ -291,8 +291,8 @@ bool Chart::Draw()
 		Color c(BLACK);
 		DrawArraw(rF.m_start, rF.m_end);
 
-		drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM);
-		drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP);
+		drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM | DT_NOPREFIX);
+		drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP | DT_NOPREFIX);
 	}
 
 	return true;
