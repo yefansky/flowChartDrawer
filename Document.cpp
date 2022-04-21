@@ -77,13 +77,20 @@ bool Document::Load(const char* cpszPath)
 						f.m_szProtocolName, (unsigned)_countof(f.m_szProtocolName), 
 						f.m_szDatas, (unsigned)_countof(f.m_szDatas)
 					);
-					KGLOG_PROCESS_ERROR(nRetCode >= 3);
+					if (nRetCode >= 3)
+					{
+						sscanf_s(szBuffer, "%*[^#]#%[^$\n]", f.m_szComment, (unsigned)_countof(f.m_szComment));
 
-					sscanf_s(szBuffer, "%*[^#]#%[^$\n]", f.m_szComment, (unsigned)_countof(f.m_szComment));
-
-					f.m_nSrc = key2index(szSrc, nick2indexMap);
-					f.m_nDst = key2index(szDst, nick2indexMap);
-					m_Flows.push_back(f);
+						f.m_nSrc = key2index(szSrc, nick2indexMap);
+						f.m_nDst = key2index(szDst, nick2indexMap);
+						m_Flows.push_back(f);
+					}
+					else
+					{
+						nRetCode = sscanf_s(szBuffer, "#%[^$\n]", f.m_szComment, (unsigned)_countof(f.m_szComment));
+						f.m_nType = FLOW_NODE_TYPE::sectionDesc;
+						m_Flows.push_back(f);
+					}
 				}
 				break;
 			}

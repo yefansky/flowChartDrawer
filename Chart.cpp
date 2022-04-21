@@ -11,7 +11,7 @@
 #define CONTENT_MAX_WIDTH_PER_LINE 400
 #define PAGE_LEFT_DISTANCE	50
 #define PAGE_TOP_DISTANCE 50
-#define PAGE_RIGHT_DISTANCE 100
+#define PAGE_RIGHT_DISTANCE 400
 
 #define ZONE_LEFT_EDGE_INTERVAL 250
 #define ZONE_WIDTH 200
@@ -164,30 +164,22 @@ bool Chart::Parse(Document* pDoc)
 	for (auto& rData : pDoc->m_Flows)
 	{
 		FlowChart f;
-
-		auto* pSrcZone = index2ZoneChartMap[rData.m_nSrc];
-		auto* pDstZone = index2ZoneChartMap[rData.m_nDst];
-
-		KGLOG_PROCESS_ERROR(pSrcZone);
-		KGLOG_PROCESS_ERROR(pDstZone);
-
-		f.m_strUpperText = to_wide_string(rData.m_szProtocolName);
-		f.m_strLowerText = to_wide_string(rData.m_szDatas);
-		if (rData.m_szComment[0])
+		f.m_nType = FLOW_NODE_TYPE::draw;
+		
+		if (rData.m_nType == FLOW_NODE_TYPE::sectionDesc)
 		{
-			f.m_strLowerText += L"\n";
-			f.m_strLowerText += to_wide_string(rData.m_szComment);
-		}
+			f.m_nType = rData.m_nType;
 
-		if (pSrcZone != pDstZone)
-		{
-			if (!f.m_strUpperText.empty())
+			if (rData.m_szComment[0])
 			{
-				nY += lines(f.m_strUpperText) * textheight(f.m_strUpperText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
+				f.m_strUpperText += to_wide_string(rData.m_szComment);
 			}
 
+			auto* pSrcZone = index2ZoneChartMap[1];
 			f.m_start = { pSrcZone->CenterX(), nY };
-			f.m_end = { pDstZone->CenterX(), nY };
+
+			f.m_start = { pSrcZone->CenterX(), nY };
+			f.m_end = { pSrcZone->CenterX() + 1000, nY };
 			f.m_labelRect = {
 				min(f.m_start.m_nX, f.m_end.m_nX),
 				f.m_start.m_nY - FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC,
@@ -195,44 +187,79 @@ bool Chart::Parse(Document* pDoc)
 				f.m_start.m_nY - FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC
 			};
 
-			WordWrap(f.m_strLowerText, min(abs(f.m_start.m_nX - f.m_end.m_nX), CONTENT_MAX_WIDTH_PER_LINE));
-			if (!f.m_strLowerText.empty())
-			{
-				nY += lines(f.m_strLowerText) * textheight(f.m_strLowerText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
-			}
-
-			f.m_labelRect2 = {
-				min(f.m_start.m_nX, f.m_end.m_nX),
-				f.m_start.m_nY + FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC,
-				max(f.m_start.m_nX, f.m_end.m_nX),
-				nY
-			};
-			f.m_uFormat = f.m_start.m_nX < f.m_end.m_nX ? DT_LEFT : DT_RIGHT;
+			f.m_uFormat = DT_LEFT;
 		}
 		else
 		{
-			f.m_start = { pSrcZone->CenterX(), nY };
-			WordWrap(f.m_strLowerText, CONTENT_MAX_WIDTH_PER_LINE);
+			auto* pSrcZone = index2ZoneChartMap[rData.m_nSrc];
+			auto* pDstZone = index2ZoneChartMap[rData.m_nDst];
 
-			if (!f.m_strLowerText.empty())
-				f.m_strLowerText = L"----------------\n" + f.m_strLowerText;
-			auto s = f.m_strUpperText + L"\n" + f.m_strLowerText;
-			int textHeight = textheight(s.c_str()) * lines(s);
-			nY += textHeight + FLOW_VERTICAL_ARROW_EXT_LENGTH;
-			f.m_end = { pDstZone->CenterX(), nY };
-			f.m_labelRect = { 
-				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE, 
-				f.m_start.m_nY + FLOW_VERTICAL_TOP_DISTANCE,
-				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_UPPER_TEXT_WIDTH,
-				(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2
-			};
-			f.m_labelRect2 = {
-				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE, 
-				(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2,
-				f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_LOWER_TEXT_WIDTH,
-				f.m_end.m_nY - FLOW_VERTICAL_BOTTOM_DISTANCE
-			};
-			f.m_uFormat = DT_LEFT;
+			KGLOG_PROCESS_ERROR(pSrcZone);
+			KGLOG_PROCESS_ERROR(pDstZone);
+
+			f.m_strUpperText = to_wide_string(rData.m_szProtocolName);
+			f.m_strLowerText = to_wide_string(rData.m_szDatas);
+			if (rData.m_szComment[0])
+			{
+				f.m_strLowerText += L"\n";
+				f.m_strLowerText += to_wide_string(rData.m_szComment);
+			}
+
+			if (pSrcZone != pDstZone)
+			{
+				if (!f.m_strUpperText.empty())
+				{
+					nY += lines(f.m_strUpperText) * textheight(f.m_strUpperText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
+				}
+
+				f.m_start = { pSrcZone->CenterX(), nY };
+				f.m_end = { pDstZone->CenterX(), nY };
+				f.m_labelRect = {
+					min(f.m_start.m_nX, f.m_end.m_nX),
+					f.m_start.m_nY - FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC,
+					max(f.m_start.m_nX, f.m_end.m_nX),
+					f.m_start.m_nY - FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC
+				};
+
+				WordWrap(f.m_strLowerText, min(abs(f.m_start.m_nX - f.m_end.m_nX), CONTENT_MAX_WIDTH_PER_LINE));
+				if (!f.m_strLowerText.empty())
+				{
+					nY += lines(f.m_strLowerText) * textheight(f.m_strLowerText.c_str()) + FLOW_UPPER_TEXT_REC2FAR_LINE_DISTANC;
+				}
+
+				f.m_labelRect2 = {
+					min(f.m_start.m_nX, f.m_end.m_nX),
+					f.m_start.m_nY + FLOW_UPPER_TEXT_REC2NEAR_LINE_DISTANC,
+					max(f.m_start.m_nX, f.m_end.m_nX),
+					nY
+				};
+				f.m_uFormat = f.m_start.m_nX < f.m_end.m_nX ? DT_LEFT : DT_RIGHT;
+			}
+			else
+			{
+				f.m_start = { pSrcZone->CenterX(), nY };
+				WordWrap(f.m_strLowerText, CONTENT_MAX_WIDTH_PER_LINE);
+
+				if (!f.m_strLowerText.empty())
+					f.m_strLowerText = L"----------------\n" + f.m_strLowerText;
+				auto s = f.m_strUpperText + L"\n" + f.m_strLowerText;
+				int textHeight = textheight(s.c_str()) * lines(s);
+				nY += textHeight + FLOW_VERTICAL_ARROW_EXT_LENGTH;
+				f.m_end = { pDstZone->CenterX(), nY };
+				f.m_labelRect = {
+					f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE,
+					f.m_start.m_nY + FLOW_VERTICAL_TOP_DISTANCE,
+					f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_UPPER_TEXT_WIDTH,
+					(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2
+				};
+				f.m_labelRect2 = {
+					f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE,
+					(f.m_end.m_nY + f.m_start.m_nY - FLOW_VERTICAL_TOP_DISTANCE) / 2,
+					f.m_start.m_nX + FLOW_VERTICAL_LEFT_DISTANCE + FLOW_VERTICAL_LOWER_TEXT_WIDTH,
+					f.m_end.m_nY - FLOW_VERTICAL_BOTTOM_DISTANCE
+				};
+				f.m_uFormat = DT_LEFT;
+			}
 		}
 
 		nY += FLOW_BLOCK_Y_DISTANCE;
@@ -288,11 +315,20 @@ bool Chart::Draw()
 
 	for (auto& rF : m_Flows)
 	{
-		Color c(BLACK);
-		DrawArraw(rF.m_start, rF.m_end);
+		if (rF.m_nType == FLOW_NODE_TYPE::draw)
+		{
+			Color c(BLACK);
+			DrawArraw(rF.m_start, rF.m_end);
 
-		drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM | DT_NOPREFIX);
-		drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP | DT_NOPREFIX);
+			drawtext(rF.m_strUpperText.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM | DT_NOPREFIX);
+			drawtext(rF.m_strLowerText.c_str(), &rF.m_labelRect2, rF.m_uFormat | DT_NOCLIP | DT_TOP | DT_NOPREFIX);
+		}
+		else if (rF.m_nType == FLOW_NODE_TYPE::sectionDesc)
+		{
+			Color c(RED);
+			std::wstring strDesc = std::wstring(L"===================") + rF.m_strUpperText + std::wstring(L"===================");
+			drawtext(strDesc.c_str(), &rF.m_labelRect, rF.m_uFormat | DT_NOCLIP | DT_BOTTOM | DT_NOPREFIX);
+		}
 	}
 
 	return true;

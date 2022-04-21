@@ -29,6 +29,7 @@ struct ZoneChart
 
 struct FlowChart
 {
+	int m_nType;
 	Point m_start;
 	Point m_end;
 	std::wstring m_strUpperText = L"";

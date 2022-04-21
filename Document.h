@@ -16,8 +16,15 @@ struct Zone
 	int m_nIndex = -1;
 };
 
+enum FLOW_NODE_TYPE
+{
+	draw = 0,
+	sectionDesc = 1
+};
+
 struct Flow
 {
+	int m_nType = FLOW_NODE_TYPE::draw;
 	char m_szProtocolName[FLOW_NAME_LEN]	= "";
 	char m_szDatas[FLOW_DATA_TEXT_LEN]		= "";
 	char m_szComment[FLOW_COMMENT_TEXT_LEN] = "";
